@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForensiX | Connection Finder</title>
+
+    <style>
+        :root {
+            --bg: #0b0b0d;
+            --panel: #141416;
+            --panel-hover: #1b1b1e;
+            --border: #29292d;
+            --text: #f4f4f5;
+            --muted: #96969f;
+            --red: #d51f2b;
+            --red-hover: #ed2936;
+            --font: "DM Sans", "Segoe UI", Arial, sans-serif;
+            --heading: "Space Grotesk", "Segoe UI", Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(ellipse at top left, rgba(213,31,43,.09), transparent 38%),
+                var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            line-height: 1.55;
+        }
+
+        header {
+            padding: 24px max(5%, calc((100% - 1450px) / 2));
+            background: #09090a;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            margin: 0 0 5px;
+            font-family: var(--heading);
+            font-size: 34px;
+            letter-spacing: -.04em;
+        }
+
+        header h1::first-letter { color: var(--text); }
+        header p { margin: 0; color: var(--muted); font-size: 14px; }
+
+        nav {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px max(5%, calc((100% - 1450px) / 2));
+            background: rgba(13,13,15,.96);
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav a {
+            padding: 9px 13px;
+            border-radius: 7px;
+            color: #c5c5cb;
+            font-size: 13px;
+            font-weight: 650;
+            text-decoration: none;
+            transition: background .18s, color .18s;
+        }
+
+        nav a:hover {
+            color: white;
+            background: rgba(213,31,43,.13);
+        }
+
+        main {
+            width: min(1450px, calc(100% - 40px));
+            margin: 32px auto;
+            padding: 0 0 48px;
+        }
+
+        .panel {
+            margin-bottom: 22px;
+            padding: clamp(20px, 3vw, 30px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: linear-gradient(145deg, rgba(22,22,25,.98), rgba(17,17,19,.98));
+            box-shadow: 0 14px 35px rgba(0,0,0,.16);
+        }
+
+        h2, h3 {
+            margin-top: 0;
+            color: var(--text);
+            font-family: var(--heading);
+            letter-spacing: -.025em;
+        }
+
+        h2 { margin-bottom: 18px; font-size: clamp(24px, 3vw, 30px); }
+        h3 { margin-bottom: 20px; font-size: 20px; }
+
+        .muted { color: var(--muted); font-size: 13px; }
+        p { color: #e4e4e7; }
+        strong { color: #fff; }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 17px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 8px;
+            background: #242428;
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background .18s, border-color .18s, transform .18s;
+        }
+
+        .button:hover {
+            background: #303035;
+            border-color: #48484f;
+            transform: translateY(-1px);
+        }
+
+        .notice {
+            margin: 22px 0;
+            padding: 16px 18px;
+            border: 1px solid rgba(213,31,43,.25);
+            border-left: 3px solid var(--red);
+            border-radius: 8px;
+            background: rgba(213,31,43,.065);
+            color: #c5c5cc;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .notice strong { color: #fff; }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1050px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #1c1c20;
+            color: #bdbdc5;
+            font-size: 11px;
+            font-weight: 750;
+            letter-spacing: .055em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        td { color: #dedee3; }
+        tbody tr { background: rgba(18,18,20,.7); transition: background .15s; }
+        tbody tr:nth-child(even) { background: rgba(25,25,28,.7); }
+        tbody tr:hover { background: rgba(213,31,43,.075); }
+        tbody tr:last-child td { border-bottom: 0; }
+
+        .case-link {
+            color: #ff5b64;
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .case-link:hover { color: #ff8a90; text-decoration: underline; }
+
+        .score {
+            color: #fff;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .empty {
+            padding: 24px 0;
+            color: var(--muted);
+        }
+
+        .error {
+            padding: 15px 17px;
+            border: 1px solid rgba(255,73,83,.4);
+            border-radius: 9px;
+            background: rgba(213,31,43,.1);
+            color: #ff858b;
+        }
+
+        .save-connection-button {
+            padding: 9px 12px;
+            border: 0;
+            border-radius: 7px;
+            background: var(--red);
+            color: white;
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 750;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background .18s, transform .18s, box-shadow .18s;
+        }
+
+        .save-connection-button:hover {
+            background: var(--red-hover);
+            box-shadow: 0 5px 16px rgba(213,31,43,.2);
+            transform: translateY(-1px);
+        }
+
+        .save-connection-button:focus-visible,
+        .button:focus-visible,
+        nav a:focus-visible {
+            outline: 2px solid #ff6972;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 700px) {
+            header { padding: 22px 20px; }
+            header h1 { font-size: 29px; }
+            nav { gap: 4px; padding: 10px 12px; }
+            nav a { padding: 9px 10px; font-size: 12px; }
+            main { width: calc(100% - 24px); margin-top: 18px; }
+            .panel { padding: 18px 15px; border-radius: 11px; }
+            .notice { padding: 13px; font-size: 13px; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h1>ForensiX</h1>
+    <p>Crime Investigation &amp; Case Intelligence System</p>
+</header>
+
+<nav>
+    <a href="{{ url_for('investigation.index') }}">Investigation Desk</a>
+    <a href="{{ url_for('case_entry.new_case') }}">New Case Entry</a>
+    <a href="{{ url_for('home') }}">Home</a>
+</nav>
+
+<main>
+    {% if error %}
+        <section class="panel">
+            <h2>Connection Finder</h2>
+            <div class="error">{{ error }}</div>
+        </section>
+
+    {% elif case_record %}
+        <section class="panel">
+            <p class="muted">CONNECTION FINDER</p>
+            <h2>Potentially Related Cases</h2>
+
+            <p>
+                Starting case:
+                <strong>{{ case_record.case_number }}</strong>
+                — {{ case_record.case_title }}
+            </p>
+
+            <p class="muted">
+                Crime type: {{ case_record.crime_type }}
+                | Incident date: {{ case_record.incident_date }}
+            </p>
+
+            <div class="notice">
+                <strong>How the score works:</strong>
+                Shared location: up to 25 points;
+                same crime type: 15 points;
+                incident date within the selected seven-day window: 10 points.
+                The maximum available score is 50.
+                These scores indicate similarity, not proof that cases are connected.
+                Suspect and evidence matching is not included for source-derived Chicago records.
+            </div>
+
+            <p>
+                <a class="button"
+                   href="{{ url_for('investigation.case_detail', case_id=case_record.case_id) }}">
+                    Back to case details
+                </a>
+            </p>
+        </section>
+
+        <section class="panel">
+            <h3>Matching candidates</h3>
+
+            {% if connections %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case number</th>
+                                <th>Crime type</th>
+                                <th>Incident date</th>
+                                <th>Shared locations</th>
+                                <th>Location points</th>
+                                <th>Crime-type points</th>
+                                <th>Date points</th>
+                                <th>Score / 50</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in connections %}
+                            <tr>
+                                <td>
+                                    <a class="case-link"
+                                       href="{{ url_for('investigation.case_detail', case_id=item.case_id) }}">
+                                        {{ item.case_number }}
+                                    </a>
+                                </td>
+                                <td>{{ item.crime_type }}</td>
+                                <td>{{ item.incident_date }}</td>
+                                <td>{{ item.shared_locations }}</td>
+                                <td>{{ item.location_points }}</td>
+                                <td>{{ item.crime_type_points }}</td>
+                                <td>{{ item.date_points }}</td>
+                                <td class="score">{{ item.available_score_out_of_50 }}/50</td>
+                                <td>
+    <form method="POST"
+          action="{{ url_for(
+              'investigation.save_case_connection',
+              case_id=case_record.case_id
+          ) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden"
+               name="related_case_id"
+               value="{{ item.case_id }}">
+        <button type="submit" class="save-connection-button">
+            Save potential connection
+        </button>
+    </form>
+</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 22px;">
+    <a class="button"
+       href="{{ url_for('investigation.case_connections', case_id=case_record.case_id) }}">
+        Find Related Cases
+    </a>
+</div>
+            {% else %}
+                <p class="empty">
+                    No candidate cases matched the available criteria.
+                    This does not prove that no connection exists.
+                </p>
+            {% endif %}
+        </section>
+    {% endif %}
+</main>
+</body>
+</html>

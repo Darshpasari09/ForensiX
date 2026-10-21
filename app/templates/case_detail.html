@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForensiX | Case Details</title>
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .case-page { max-width: 1500px; margin: 0 auto; padding: 28px 32px 48px; }
+        .case-page .panel {
+            background: var(--panel, #141416); color: var(--text, #f4f4f5);
+            padding: 24px; margin-bottom: 20px; border: 1px solid var(--border, #29292d);
+            border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        }
+        .case-page h2, .case-page h3 { color: var(--text, #f4f4f5); font-family: var(--heading, Arial, sans-serif); }
+        .case-page h3 { margin-bottom: 18px; font-size: 17px; }
+        .case-page .muted, .case-page .label { color: var(--muted, #96969f); }
+        .case-page .muted { font-size: 13px; }
+        .case-page .label { font-size: 12px; margin-bottom: 6px; }
+        .case-page .value { overflow-wrap: anywhere; font-weight: 600; }
+        .case-page .grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+        .case-page .full-width, .case-page .full { grid-column: 1 / -1; }
+        .case-page .pill {
+            display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 6px;
+            background: rgba(213,31,43,.13); border: 1px solid rgba(213,31,43,.35);
+            color: #ff727b; font-size: 11px; font-weight: 700;
+        }
+        .case-page .table-wrap { overflow-x: auto; }
+        .case-page table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .case-page th, .case-page td {
+            text-align: left; vertical-align: top; padding: 13px 12px;
+            border-bottom: 1px solid var(--border, #29292d);
+        }
+        .case-page th { background: #1b1b1e; color: #b7b7c0; font-weight: 600; white-space: nowrap; }
+        .case-page td { color: #e5e5e9; }
+        .case-page tr:last-child td { border-bottom: 0; }
+        .case-page a { color: #ff6872; }
+        .case-page a:hover { color: #ff9299; }
+        .case-page .back { display: inline-flex; margin-bottom: 20px; color: #ff6872; font-weight: 600; }
+        .case-page .entry-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-bottom: 18px; }
+        .case-page .entry-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+        .case-page .entry-field label { font-size: 13px; font-weight: 600; color: #d7d7dd; }
+        .case-page .entry-field input, .case-page .entry-field select, .case-page .entry-field textarea,
+        .case-page .task-status-form select {
+            width: 100%; box-sizing: border-box; padding: 11px 12px;
+            border: 1px solid #36363d; border-radius: 8px; background: #0f0f11;
+            color: #f4f4f5; font: inherit; outline: none;
+        }
+        .case-page .entry-field input:focus, .case-page .entry-field select:focus,
+        .case-page .entry-field textarea:focus, .case-page .task-status-form select:focus {
+            border-color: #d51f2b; box-shadow: 0 0 0 3px rgba(213,31,43,.14);
+        }
+        .case-page .entry-field textarea { min-height: 95px; resize: vertical; }
+        .case-page button, .case-page .action-link {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background: #d51f2b; color: white; border: 0; border-radius: 8px;
+            padding: 10px 15px; cursor: pointer; font: inherit; font-weight: 700;
+            text-decoration: none; transition: background .2s ease, transform .2s ease;
+        }
+        .case-page button:hover, .case-page .action-link:hover { background: #ed2936; color: white; }
+        .case-page .task-status-form { display: flex; align-items: center; gap: 8px; min-width: 220px; }
+        .case-page .task-status-form select { min-width: 125px; padding: 8px; font-size: 12px; }
+        .case-page .task-status-form button { padding: 8px 10px; font-size: 12px; }
+        .case-page .empty { color: var(--muted, #96969f); padding: 8px 0; }
+        .case-page .error { background: rgba(213,31,43,.12); color: #ff9aa1; border-color: rgba(213,31,43,.35); }
+        .case-page .success { background: rgba(34,197,94,.09); color: #86efac; border-color: rgba(34,197,94,.25); }
+        .case-page .case-eyebrow { color: #ff6872; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+        .case-page .case-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .case-page .case-title-row h2 { margin: 6px 0 8px; font-size: clamp(24px,3vw,34px); }
+        .case-page .section-intro { color: var(--muted, #96969f); font-size: 13px; margin-top: -8px; margin-bottom: 18px; }
+        .topbar .breadcrumb { color: var(--muted, #96969f); }
+        @media (max-width: 1000px) {
+            .case-page { padding: 22px 20px 36px; }
+            .case-page .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        }
+        @media (max-width: 650px) {
+            .case-page { padding: 18px 14px 30px; }
+            .case-page .grid, .case-page .entry-grid { grid-template-columns: 1fr; }
+            .case-page .full-width, .case-page .full { grid-column: auto; }
+            .case-page .panel { padding: 17px; }
+            .case-page .task-status-form { min-width: 190px; }
+        }
+    </style>
+
+</head>
+<body>
+
+
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">F<span class="brand-accent">X</span></div>
+            <div>
+                <div class="brand-name">ForensiX</div>
+                <div class="brand-subtitle">CASE INTELLIGENCE</div>
+            </div>
+        </div>
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('home') }}" class="nav-item"><span class="nav-icon">⌂</span><span>Home</span></a>
+            <a href="{{ url_for('investigation.index') }}" class="nav-item active"><span class="nav-icon">▤</span><span>Cases</span></a>
+            <a href="{{ url_for('analytics.index') }}" class="nav-item"><span class="nav-icon">▥</span><span>Reports &amp; Analytics</span></a>
+            <a href="{{ url_for('case_entry.new_case') }}" class="nav-item"><span class="nav-icon">＋</span><span>Register New Case</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="user-avatar">{{ session.get('full_name', 'U')[:1] }}</div>
+                <div class="user-info">
+                    <strong>{{ session.get('full_name', 'User') }}</strong>
+                    <span>{{ session.get('role', '')|replace('_', ' ') }}</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="logout-button">↪ &nbsp; Log out</button>
+            </form>
+        </div>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">Workspace <span>/</span> Cases <span>/</span> Case Details</div>
+            <div class="system-status"><span></span> System operational</div>
+        </div>
+        <main class="case-page">
+
+    <a class="back" href="{{ url_for('investigation.index') }}">
+        &larr; Back to Investigation Desk
+    </a>
+
+    {% if error %}
+        <div class="panel error">{{ error }}</div>
+
+    {% elif case_record %}
+    
+{% if notice == 'timeline_added' %}
+    <div class="panel success">Timeline event added successfully.</div>
+{% elif notice == 'task_added' %}
+    <div class="panel success">Investigation task created successfully.</div>
+{% elif notice == 'task_status_updated' %}
+    <div class="panel success">Task status updated successfully.</div>
+{% elif notice == 'connection_saved' %}
+    <div class="panel success">
+        Potential case connection saved successfully.
+    </div>
+{% elif notice == 'case_updated' %}
+    <div class="panel success">Case updated successfully.</div>
+{% elif notice == 'person_updated' %}
+    <div class="panel success">
+        Person updated successfully.
+    </div>
+{% elif notice == 'evidence_updated' %}
+    <div class="panel success">
+        Evidence updated successfully.
+    </div>
+{% elif notice == 'connection_exists' %}
+    <div class="panel error">
+        This case relationship has already been saved.
+    </div>
+{% elif notice == 'connection_provenance_mismatch' %}
+    <div class="panel error">
+        Synthetic demo cases cannot be linked to source-derived cases.
+    </div>
+{% elif notice == 'connection_invalid' %}
+    <div class="panel error">
+        The selected case connection is invalid or has no supported matching criteria.
+    </div>
+{% elif notice == 'connection_failed' %}
+    <div class="panel error">
+        Could not save the potential case connection.
+    </div>
+{% elif notice == 'task_status_failed' %}
+    <div class="panel error">Could not update the task status.</div>
+{% elif notice == 'task_invalid_status' %}
+    <div class="panel error">Please select a valid task status.</div>
+{% elif notice == 'timeline_required' %}
+    <div class="panel error">Event type and description are required.</div>
+{% elif notice == 'timeline_invalid_date' %}
+    <div class="panel error">The timeline date and time is invalid.</div>
+{% elif notice == 'timeline_failed' %}
+    <div class="panel error">Could not save the timeline event.</div>
+{% elif notice == 'task_title_required' %}
+    <div class="panel error">Task title is required.</div>
+{% elif notice == 'task_invalid_priority' %}
+    <div class="panel error">Select a valid task priority.</div>
+{% elif notice == 'task_invalid_value' %}
+    <div class="panel error">Check the assigned user ID and due date.</div>
+{% elif notice == 'task_invalid_assignee' %}
+    <div class="panel error">The assigned user ID does not exist.</div>
+{% elif notice == 'task_failed' %}
+    <div class="panel error">Could not save the investigation task.</div>
+{% endif %}
+
+
+    <section class="panel">
+        <div class="case-title-row">
+            <div>
+                <div class="case-eyebrow">Case record · {{ case_record.case_id }}</div>
+                <h2>{{ case_record.case_title }}</h2>
+                <p class="muted">Case number: {{ case_record.case_number }}</p>
+            </div>
+            <a class="action-link" href="{{ url_for('investigation.edit_case', case_id=case_record.case_id) }}">Edit Case</a>
+        </div>
+        <div class="grid">
+            <div>
+                <div class="label">Crime type</div>
+                <div class="value">{{ case_record.crime_type }}</div>
+            </div>
+
+            <div>
+                <div class="label">Priority</div>
+                <div><span class="pill">{{ case_record.priority }}</span></div>
+            </div>
+
+            <div>
+                <div class="label">Status</div>
+                <div>
+                    <span class="pill">{{ case_record.status.replace('_', ' ') }}</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="label">Incident date</div>
+                <div>{{ case_record.incident_date or '—' }}</div>
+            </div>
+
+            <div>
+                <div class="label">Reported date</div>
+                <div>{{ case_record.report_date or '—' }}</div>
+            </div>
+
+            <div>
+                <div class="label">Lead investigator</div>
+                <div>{{ case_record.lead_investigator or 'Not assigned' }}</div>
+            </div>
+
+            <div>
+                <div class="label">Created by</div>
+                <div>{{ case_record.created_by_username or '—' }}</div>
+            </div>
+
+            <div class="full">
+    <div class="label">Description</div>
+    <div>{{ case_record.description or 'No description entered.' }}</div>
+</div>
+</div>
+
+<div style="margin-top: 22px;">
+    <a class="action-link" href="{{ url_for('investigation.case_connections', case_id=case_record.case_id) }}">
+        Find Related Cases
+    </a>
+</div>
+</section>
+
+    <section class="panel">
+        <h3>Locations</h3>
+        {% if locations %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Coordinates</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loc in locations %}
+                    <tr>
+                        <td>{{ loc.location_type or 'INCIDENT' }}</td>
+                        <td>{{ loc.address }}</td>
+                        <td>{{ loc.city }}</td>
+                        <td>{{ loc.state or '—' }}</td>
+                        <td>
+                            {% if loc.latitude is not none and loc.longitude is not none %}
+                                {{ loc.latitude }}, {{ loc.longitude }}
+                            {% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No location has been linked to this case.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>People and roles</h3>
+        {% if people %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Date of birth</th>
+                        <th>Gender</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for person in people %}
+                    <tr>
+                        <td>
+    {{ person.full_name }}
+    <br>
+    <a href="{{ url_for(
+        'investigation.edit_person',
+        case_id=case_record.case_id,
+        person_id=person.person_id
+    ) }}">Edit</a>
+</td>
+                        <td><span class="pill">{{ person.person_role }}</span></td>
+                        <td>{{ person.date_of_birth or '—' }}</td>
+                        <td>{{ person.gender or '—' }}</td>
+                        <td>{{ person.notes or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No people are linked to this case.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>Evidence</h3>
+        {% if evidence %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evidence code</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Collected</th>
+                        <th>Storage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in evidence %}
+                    <tr>
+                        
+<td>
+    {{ item.evidence_code }}
+    <br>
+    <a href="{{ url_for(
+        'investigation.edit_evidence',
+        case_id=case_record.case_id,
+        evidence_id=item.evidence_id
+    ) }}">Edit</a>
+</td>
+
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.description }}</td>
+                        <td><span class="pill">{{ item.status }}</span></td>
+                        <td>{{ item.collection_datetime or '—' }}</td>
+                        <td>{{ item.storage_location or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No evidence records are attached to this case.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>Forensic examinations</h3>
+        {% if forensic_tests %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evidence</th>
+                        <th>Test type</th>
+                        <th>Status</th>
+                        <th>Requested</th>
+                        <th>Completed</th>
+                        <th>Requested by</th>
+                        <th>Analyst</th>
+                        <th>Conclusion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test in forensic_tests %}
+                    <tr>
+                        <td>{{ test.evidence_code }}</td>
+                        <td>{{ test.test_type }}</td>
+                        <td><span class="pill">{{ test.status }}</span></td>
+                        <td>{{ test.request_date or '—' }}</td>
+                        <td>{{ test.completed_date or '—' }}</td>
+                        <td>{{ test.requested_by or '—' }}</td>
+                        <td>{{ test.analyst or '—' }}</td>
+                        <td>{{ test.conclusion or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No forensic tests have been recorded.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>Chain of custody</h3>
+        {% if custody_records %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evidence</th>
+                        <th>From user</th>
+                        <th>To user</th>
+                        <th>Transfer time</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in custody_records %}
+                    <tr>
+                        <td>{{ item.evidence_code }}</td>
+                        <td>{{ item.from_user or 'Initial custody' }}</td>
+                        <td>{{ item.to_user }}</td>
+                        <td>{{ item.transfer_datetime or '—' }}</td>
+                        <td>{{ item.notes or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No custody transfers have been recorded.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>Digital-file metadata</h3>
+        {% if digital_files %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evidence</th>
+                        <th>File name</th>
+                        <th>File type</th>
+                        <th>Size (bytes)</th>
+                        <th>Checksum</th>
+                        <th>Uploaded by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in digital_files %}
+                    <tr>
+                        <td>{{ file.evidence_code }}</td>
+                        <td>{{ file.file_name }}</td>
+                        <td>{{ file.file_type or '—' }}</td>
+                        <td>{{ file.file_size if file.file_size is not none else '—' }}</td>
+                        <td>{{ file.checksum or '—' }}</td>
+                        <td>{{ file.uploaded_by or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No digital-file metadata has been recorded.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>Investigation timeline</h3>
+        {% if timeline %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event time</th>
+                        <th>Event</th>
+                        <th>Description</th>
+                        <th>Created by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in timeline %}
+                    <tr>
+                        <td>{{ event.event_time }}</td>
+                        <td>{{ event.event_type }}</td>
+                        <td>{{ event.description }}</td>
+                        <td>{{ event.created_by or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No timeline events have been recorded.</p>
+        {% endif %}
+    </section>
+    
+<section class="panel">
+    <h3>Add timeline event</h3>
+
+    <form method="POST"
+          action="{{ url_for('investigation.add_timeline_event', case_id=case_record.case_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="entry-grid">
+            <div class="entry-field">
+                <label for="event_type">Event type *</label>
+                <input id="event_type"
+                       name="event_type"
+                       maxlength="100"
+                       required
+                       placeholder="e.g. Evidence reviewed">
+            </div>
+
+            <div class="entry-field">
+                <label for="event_time">Event date and time</label>
+                <input id="event_time"
+                       name="event_time"
+                       type="datetime-local">
+            </div>
+
+            <div class="entry-field full-width">
+                <label for="timeline_description">Description *</label>
+                <textarea id="timeline_description"
+                          name="description"
+                          required
+                          placeholder="Describe what happened"></textarea>
+            </div>
+        </div>
+
+        <button type="submit">Add timeline event</button>
+    </form>
+</section>
+
+    <section class="panel">
+        <h3>Investigation tasks</h3>
+        {% if tasks %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Assigned to</th>
+                        <th>Due date</th>
+                        <th>Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>
+                            <strong>{{ task.title }}</strong>
+                            {% if task.description %}
+                                <br><span class="muted">{{ task.description }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.priority }}</td>
+                        
+<td>
+    <form class="task-status-form"
+          method="POST"
+          action="{{ url_for(
+              'investigation.update_task_status',
+              case_id=case_record.case_id,
+              task_id=task.task_id
+          ) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <select name="status" aria-label="Task status">
+            {% for value in ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] %}
+            <option value="{{ value }}"
+                {% if task.status == value %}selected{% endif %}>
+                {{ value.replace('_', ' ') }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Update</button>
+    </form>
+</td>
+
+                        <td>{{ task.assigned_to or 'Unassigned' }}</td>
+                        <td>{{ task.due_date or '—' }}</td>
+                        <td>{{ task.completed_at or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No investigation tasks have been recorded.</p>
+        {% endif %}
+    </section>
+    
+<section class="panel">
+    <h3>Create investigation task</h3>
+
+    <form method="POST"
+          action="{{ url_for('investigation.add_investigation_task', case_id=case_record.case_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="entry-grid">
+            <div class="entry-field">
+                <label for="task_title">Task title *</label>
+                <input id="task_title"
+                       name="title"
+                       maxlength="150"
+                       required
+                       placeholder="Enter task title">
+            </div>
+
+            <div class="entry-field">
+                <label for="task_priority">Priority</label>
+                <select id="task_priority" name="priority">
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM" selected>MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                </select>
+            </div>
+
+            <div class="entry-field">
+                <label for="assigned_to">Assigned user ID (optional)</label>
+                <input id="assigned_to"
+                       name="assigned_to"
+                       type="number"
+                       min="1"
+                       placeholder="e.g. 2">
+            </div>
+
+            <div class="entry-field">
+                <label for="due_date">Due date</label>
+                <input id="due_date" name="due_date" type="date">
+            </div>
+
+            <div class="entry-field full-width">
+                <label for="task_description">Description</label>
+                <textarea id="task_description"
+                          name="description"
+                          placeholder="Describe the task"></textarea>
+            </div>
+        </div>
+
+        <p class="muted">
+            New tasks start with PENDING status. Leave Assigned user ID blank
+            when the task has no assignee.
+        </p>
+
+        <button type="submit">Create task</button>
+    </form>
+</section>
+
+
+
+    <section class="panel">
+        <h3>Saved case relationships</h3>
+        {% if relationships %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Related case number</th>
+                        <th>Case title</th>
+                        <th>Relationship</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for relation in relationships %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('investigation.case_detail', case_id=relation.related_case_id) }}">
+                                {{ relation.related_case_number }}
+                            </a>
+                        </td>
+                        <td>{{ relation.related_case_title }}</td>
+                        <td>{{ relation.relationship_type }}</td>
+                        <td>{{ relation.notes or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">
+                No saved case relationships. Potential matches can be evaluated using Connection Finder.
+            </p>
+        {% endif %}
+    </section>
+    
+
+
+    {% endif %}
+</main>
+    </div>
+</div>
+</body>
+</html>

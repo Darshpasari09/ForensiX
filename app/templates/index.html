@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForensiX | Investigation Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Dashboard-specific styling; shared navigation remains in style.css. */
+        .dashboard-page .page-content { max-width: 1500px; margin: 0 auto; }
+        .dashboard-page .hero {
+            position: relative; isolation: isolate; overflow: hidden;
+            min-height: 340px; display: flex; align-items: center;
+            padding: clamp(28px, 5vw, 62px); border: 1px solid #303035;
+            border-radius: 18px; background:
+                radial-gradient(ellipse at 78% 20%, rgba(213,31,43,.19), transparent 35%),
+                linear-gradient(120deg, #18181b 0%, #111113 60%, #1a1113 100%);
+        }
+        .dashboard-page .hero-overlay {
+            position:absolute; inset:0; z-index:-1;
+            background: linear-gradient(90deg, rgba(12,12,14,.08), rgba(12,12,14,.12));
+        }
+        .dashboard-page .hero-content { max-width: 660px; position:relative; z-index:1; }
+        .dashboard-page .eyebrow { display:flex; align-items:center; gap:10px; color:#e9a0a5; font-size:11px; font-weight:700; letter-spacing:1.8px; }
+        .dashboard-page .eyebrow-line { width:28px; height:2px; background:var(--red,#d51f2b); }
+        .dashboard-page .hero h1 { margin:20px 0 14px; font:600 clamp(34px, 5vw, 58px)/1.05 var(--heading,'Arial',sans-serif); letter-spacing:-2px; }
+        .dashboard-page .hero h1 span { color:#ef3944; }
+        .dashboard-page .hero-description { max-width:520px; color:#b0b0b8; line-height:1.75; font-size:15px; }
+        .dashboard-page .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+        .dashboard-page .button-primary,.dashboard-page .button-secondary { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:44px; padding:0 17px; border-radius:8px; font-weight:700; font-size:13px; transition:background .2s,border-color .2s,transform .2s; }
+        .dashboard-page .button-primary { background:var(--red,#d51f2b); color:#fff; }
+        .dashboard-page .button-primary:hover { background:var(--red-hover,#ed2936); transform:translateY(-1px); }
+        .dashboard-page .button-secondary { border:1px solid #3a3a40; background:rgba(255,255,255,.025); color:#f4f4f5; }
+        .dashboard-page .button-secondary:hover { background:#222226; border-color:#55555d; }
+        .dashboard-page .hero-watermark { position:absolute; right:7%; top:50%; transform:translateY(-50%); color:rgba(255,255,255,.035); font:700 clamp(130px,22vw,270px)/1 var(--heading,'Arial',sans-serif); letter-spacing:-18px; pointer-events:none; }
+        .dashboard-page .hero-caption { position:absolute; right:26px; bottom:22px; display:flex; align-items:center; gap:9px; color:#777780; font-size:9px; letter-spacing:1.5px; }
+        .dashboard-page .caption-line { width:20px; height:1px; background:#d51f2b; }
+        .dashboard-page .welcome-row { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:34px 0 22px; }
+        .dashboard-page .section-kicker { margin:0 0 8px; color:#e34b55; font-size:10px; font-weight:700; letter-spacing:1.8px; }
+        .dashboard-page .welcome-row h2 { margin:0; font:600 clamp(21px,3vw,29px)/1.2 var(--heading,'Arial',sans-serif); letter-spacing:-.7px; }
+        .dashboard-page .section-description { margin:9px 0 0; color:#92929c; font-size:13px; line-height:1.6; }
+        .dashboard-page .database-chip { display:flex; align-items:center; gap:13px; min-width:230px; padding:14px 17px; border:1px solid #2c2c31; border-radius:11px; background:#131315; }
+        .dashboard-page .database-icon { display:grid; place-items:center; width:38px; height:38px; border-radius:9px; background:rgba(213,31,43,.12); color:#f05a64; font-size:20px; }
+        .dashboard-page .chip-label { display:block; margin-bottom:5px; color:#85858f; font-size:9px; font-weight:700; letter-spacing:1.2px; }
+        .dashboard-page .database-chip strong { display:block; max-width:220px; overflow-wrap:anywhere; color:#f1f1f3; font-size:12px; }
+        .dashboard-page .workspace-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+        .dashboard-page .workspace-card { position:relative; display:flex; flex-direction:column; min-height:245px; padding:23px; border:1px solid #2a2a2f; border-radius:13px; background:#141416; transition:transform .2s,border-color .2s,background .2s; }
+        .dashboard-page .workspace-card:hover { transform:translateY(-3px); border-color:#5a3034; background:#181719; }
+        .dashboard-page .card-icon { display:grid; place-items:center; width:43px; height:43px; border:1px solid #34343a; border-radius:10px; color:#e7e7eb; font-size:23px; }
+        .dashboard-page .card-icon.red-icon { border-color:rgba(213,31,43,.35); background:rgba(213,31,43,.12); color:#f14b56; }
+        .dashboard-page .card-arrow { position:absolute; top:25px; right:23px; color:#777780; font-size:18px; transition:color .2s,transform .2s; }
+        .dashboard-page .workspace-card:hover .card-arrow { color:#f04b55; transform:translate(2px,-2px); }
+        .dashboard-page .card-kicker { margin-top:23px; color:#85858f; font-size:9px; font-weight:700; letter-spacing:1.25px; }
+        .dashboard-page .workspace-card h3 { margin:9px 0 8px; font:600 19px/1.3 var(--heading,'Arial',sans-serif); }
+        .dashboard-page .workspace-card p { margin:0 0 20px; color:#9999a2; font-size:12px; line-height:1.7; }
+        .dashboard-page .card-link { display:flex; align-items:center; gap:9px; margin-top:auto; color:#f05a64; font-size:12px; font-weight:700; }
+        .dashboard-page .page-footer { display:flex; justify-content:space-between; gap:12px; margin-top:32px; padding:18px 0 4px; border-top:1px solid #242428; color:#777780; font-size:10px; letter-spacing:.35px; }
+        .dashboard-page .footer-separator { margin:0 7px; color:#d51f2b; }
+        .dashboard-page .message { margin:0 0 14px; padding:12px 15px; border:1px solid #34343a; border-radius:8px; background:#171719; color:#e8e8ec; font-size:13px; }
+        .dashboard-page .message.success { border-color:#285b42; color:#a9e7c2; }
+        .dashboard-page .message.error,.dashboard-page .message.danger { border-color:#713038; color:#ffb6bd; }
+        .dashboard-page .topbar-right { display:flex; align-items:center; gap:16px; }
+        .dashboard-page .system-status { display:flex; align-items:center; gap:8px; color:#a6a6af; font-size:11px; }
+        .dashboard-page .status-dot { width:7px; height:7px; border-radius:50%; background:#47c985; box-shadow:0 0 0 4px rgba(71,201,133,.1); }
+        @media(max-width:1000px) { .dashboard-page .workspace-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .dashboard-page .hero-watermark { right:2%; } }
+        @media(max-width:700px) { .dashboard-page .welcome-row { align-items:flex-start; flex-direction:column; } .dashboard-page .database-chip { width:100%; } .dashboard-page .workspace-grid { grid-template-columns:1fr; } .dashboard-page .hero { min-height:390px; padding:25px; } .dashboard-page .hero-watermark { right:0; top:72%; font-size:130px; } .dashboard-page .hero-caption { display:none; } .dashboard-page .page-footer { flex-direction:column; } }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="app-layout">
+        <aside class="sidebar">
+            <a href="{{ url_for('home') }}" class="brand">
+                <img src="{{ url_for('static', filename='images/fingerprint.png') }}" alt="ForensiX fingerprint logo" class="brand-logo">
+                <span>Forensi<span class="brand-accent">X</span></span>
+            </a>
+
+            <div class="sidebar-label">WORKSPACE</div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('home') }}" class="nav-item active"><span class="nav-icon">⌂</span><span>Home</span></a>
+                <a href="{{ url_for('investigation.index') }}" class="nav-item"><span class="nav-icon">▤</span><span>Cases</span></a>
+                <a href="{{ url_for('investigation.index') }}" class="nav-item"><span class="nav-icon">◎</span><span>Evidence &amp; People</span></a>
+                <a href="{{ url_for('analytics.index') }}" class="nav-item"><span class="nav-icon">▥</span><span>Reports &amp; Analytics</span></a>
+                <a href="{{ url_for('case_entry.new_case') }}" class="nav-item"><span class="nav-icon">＋</span><span>Register New Case</span></a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-user">
+                    <div class="user-avatar">{{ session.get('full_name', 'U')[:1]|upper }}</div>
+                    <div class="user-info">
+                        <strong>{{ session.get('full_name', 'User') }}</strong>
+                        <span>{{ session.get('role', 'USER')|replace('_', ' ') }}</span>
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('auth.logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="logout-button"><span>↪</span> Sign out</button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><span>FORENSIX</span><span class="breadcrumb-divider">/</span><strong>Home</strong></div>
+                <div class="topbar-right">
+                    <span class="system-status"><span class="status-dot"></span>System connected</span>
+                    <div class="topbar-avatar">{{ session.get('full_name', 'U')[:1]|upper }}</div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endwith %}
+
+                <section class="hero">
+                    <div class="hero-overlay"></div>
+                    <div class="hero-content">
+                        <div class="eyebrow"><span class="eyebrow-line"></span>CRIME INVESTIGATION &amp; CASE INTELLIGENCE</div>
+                        <h1>Every detail.<br>Every <span>connection.</span></h1>
+                        <p class="hero-description">A centralized workspace for case intelligence, evidence tracking, and investigative analysis.</p>
+                        <div class="hero-actions">
+                            <a href="{{ url_for('investigation.index') }}" class="button-primary">Explore cases <span>→</span></a>
+                            <a href="{{ url_for('case_entry.new_case') }}" class="button-secondary">+ Register a case</a>
+                        </div>
+                    </div>
+                    <div class="hero-watermark" aria-hidden="true">FX</div>
+                    <div class="hero-caption"><span class="caption-line"></span>INVESTIGATION INTELLIGENCE SYSTEM</div>
+                </section>
+
+                <section class="welcome-row">
+                    <div>
+                        <p class="section-kicker">YOUR WORKSPACE</p>
+                        <h2>Welcome back, {{ session.get('full_name', 'Investigator') }}</h2>
+                        <p class="section-description">Access your investigation tools and case intelligence.</p>
+                    </div>
+                    <div class="database-chip">
+                        <span class="database-icon">▤</span>
+                        <div><span class="chip-label">CONNECTED DATABASE</span><strong>{{ database_name }}</strong></div>
+                    </div>
+                </section>
+
+                <section class="workspace-grid">
+                    <a href="{{ url_for('investigation.index') }}" class="workspace-card">
+                        <div class="card-icon red-icon">⌕</div><div class="card-arrow">↗</div>
+                        <span class="card-kicker">01 / INVESTIGATIONS</span>
+                        <h3>Investigation Desk</h3>
+                        <p>Search case records, review incident details, and follow investigative leads.</p>
+                        <span class="card-link">Open case desk <span>→</span></span>
+                    </a>
+                    <a href="{{ url_for('case_entry.new_case') }}" class="workspace-card">
+                        <div class="card-icon">＋</div><div class="card-arrow">↗</div>
+                        <span class="card-kicker">02 / CASE MANAGEMENT</span>
+                        <h3>Register a Case</h3>
+                        <p>Create a case record and begin documenting an investigation.</p>
+                        <span class="card-link">Create new case <span>→</span></span>
+                    </a>
+                    <a href="{{ url_for('analytics.index') }}" class="workspace-card">
+                        <div class="card-icon">▥</div><div class="card-arrow">↗</div>
+                        <span class="card-kicker">03 / INTELLIGENCE</span>
+                        <h3>Reports &amp; Analytics</h3>
+                        <p>Explore dataset summaries, crime trends, and analytical reports.</p>
+                        <span class="card-link">View analytics <span>→</span></span>
+                    </a>
+                </section>
+
+                <footer class="page-footer">
+                    <span>FORENSIX <span class="footer-separator">/</span> CASE INTELLIGENCE</span>
+                    <span>Signed in as {{ session.get('username', 'user') }}</span>
+                </footer>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

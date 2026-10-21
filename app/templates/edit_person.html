@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForensiX | Edit Person</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .edit-person-page {
+            width: min(100% - 48px, 1000px);
+            margin: 0 auto;
+            padding: 34px 0 48px;
+        }
+        .edit-person-page .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #c5c5cc;
+            font-size: 13px;
+            margin-bottom: 22px;
+            text-decoration: none;
+        }
+        .edit-person-page .back-link:hover { color: #fff; }
+        .edit-person-page .edit-panel {
+            background: #141416;
+            border: 1px solid #29292d;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 850px;
+        }
+        .edit-person-page .eyebrow {
+            color: #ed5962;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .edit-person-page h1 {
+            font-family: var(--heading, 'Space Grotesk', Arial, sans-serif);
+            font-size: clamp(25px, 3vw, 34px);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            color: #f4f4f5;
+        }
+        .edit-person-page .subtitle {
+            margin: 0 0 25px;
+            color: #96969f;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .edit-person-page .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+        .edit-person-page .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+        .edit-person-page .full { grid-column: 1 / -1; }
+        .edit-person-page label {
+            color: #dedee3;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .edit-person-page input,
+        .edit-person-page select,
+        .edit-person-page textarea {
+            width: 100%;
+            min-height: 43px;
+            padding: 11px 12px;
+            border: 1px solid #36363d;
+            border-radius: 9px;
+            background: #0d0d0f;
+            color: #f4f4f5;
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .edit-person-page input:focus,
+        .edit-person-page select:focus,
+        .edit-person-page textarea:focus {
+            border-color: #d51f2b;
+            box-shadow: 0 0 0 3px rgba(213, 31, 43, .13);
+        }
+        .edit-person-page input::placeholder { color: #777780; }
+        .edit-person-page .error {
+            background: rgba(213, 31, 43, .12);
+            color: #ff9aa1;
+            border: 1px solid rgba(213, 31, 43, .35);
+            padding: 13px 15px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .edit-person-page .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        .edit-person-page .save-button,
+        .edit-person-page .cancel-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 11px 17px;
+            border-radius: 9px;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .edit-person-page .save-button {
+            border: 1px solid #d51f2b;
+            color: #fff;
+            background: #d51f2b;
+        }
+        .edit-person-page .save-button:hover { background: #ed2936; }
+        .edit-person-page .cancel-button {
+            border: 1px solid #36363d;
+            color: #e5e5e9;
+            background: #1b1b1e;
+        }
+        .edit-person-page .cancel-button:hover { background: #252529; }
+        @media (max-width: 700px) {
+            .edit-person-page { width: min(100% - 28px, 1000px); padding-top: 22px; }
+            .edit-person-page .edit-panel { padding: 22px 18px; }
+            .edit-person-page .form-grid { grid-template-columns: 1fr; }
+            .edit-person-page .full { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">F<span class="brand-accent">X</span></div>
+            <div>
+                <div class="brand-name">ForensiX</div>
+                <div class="brand-subtitle">CASE INTELLIGENCE</div>
+            </div>
+        </div>
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('home') }}" class="nav-item"><span class="nav-icon">⌂</span><span>Home</span></a>
+            <a href="{{ url_for('investigation.index') }}" class="nav-item active"><span class="nav-icon">▤</span><span>Cases</span></a>
+            <a href="{{ url_for('analytics.index') }}" class="nav-item"><span class="nav-icon">▥</span><span>Reports &amp; Analytics</span></a>
+            <a href="{{ url_for('case_entry.new_case') }}" class="nav-item"><span class="nav-icon">＋</span><span>Register New Case</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="user-avatar">{{ session.get('full_name', 'U')[:1] }}</div>
+                <div class="user-info">
+                    <strong>{{ session.get('full_name', 'User') }}</strong>
+                    <span>{{ session.get('role', '')|replace('_', ' ') }}</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="logout-button">↪ &nbsp; Log out</button>
+            </form>
+        </div>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">Workspace <span>/</span> Cases <span>/</span> Edit Person</div>
+            <div class="system-status"><span></span> System operational</div>
+        </div>
+        <main class="edit-person-page">
+            <a class="back-link" href="{{ url_for('investigation.case_detail', case_id=case_id) }}">
+                &larr; Back to case details
+            </a>
+            <section class="edit-panel">
+                <div class="eyebrow">People management · Person {{ person.person_id }}</div>
+                <h1>Edit Person</h1>
+                <p class="subtitle">Update the person's details associated with case {{ case_id }}.</p>
+
+                {% if error %}
+                    <div class="error">{{ error }}</div>
+                {% endif %}
+
+                <form method="POST"
+                      action="{{ url_for('investigation.edit_person', case_id=case_id, person_id=person.person_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label for="full_name">Full name *</label>
+                            <input id="full_name" name="full_name" maxlength="100" required value="{{ person.full_name }}">
+                        </div>
+                        <div class="field">
+                            <label for="date_of_birth">Date of birth</label>
+                            <input id="date_of_birth" name="date_of_birth" type="date" value="{{ person.date_of_birth or '' }}">
+                        </div>
+                        <div class="field">
+                            <label for="gender">Gender</label>
+                            <input id="gender" name="gender" maxlength="20" value="{{ person.gender or '' }}">
+                        </div>
+                        <div class="field">
+                            <label for="phone">Phone</label>
+                            <input id="phone" name="phone" maxlength="20" value="{{ person.phone or '' }}">
+                        </div>
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" maxlength="100" value="{{ person.email or '' }}">
+                        </div>
+                        <div class="field full">
+                            <label for="address">Address</label>
+                            <input id="address" name="address" maxlength="255" value="{{ person.address or '' }}">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="save-button" type="submit">Save person changes</button>
+                        <a class="cancel-button" href="{{ url_for('investigation.case_detail', case_id=case_id) }}">Cancel</a>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>

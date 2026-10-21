@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForensiX | New Case Entry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .new-case-page { max-width: 1100px; margin: 0 auto; }
+        .new-case-page .page-heading { margin-bottom: 24px; }
+        .new-case-page .eyebrow { color: var(--red); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+        .new-case-page h1 { margin: 8px 0; font-family: var(--heading); font-size: clamp(26px, 3vw, 34px); }
+        .new-case-page .subtitle { color: var(--muted); font-size: 14px; line-height: 1.65; max-width: 760px; }
+        .new-case-page .notice { padding: 13px 15px; margin-bottom: 18px; border-radius: 9px; font-size: 13px; line-height: 1.5; }
+        .new-case-page .notice.error { color: #fecaca; background: rgba(127,29,29,.2); border: 1px solid rgba(239,68,68,.35); }
+        .new-case-page .notice.success { color: #bbf7d0; background: rgba(20,83,45,.22); border: 1px solid rgba(34,197,94,.3); }
+        .new-case-page .case-form { display: flex; flex-direction: column; gap: 18px; }
+        .new-case-page fieldset { min-width: 0; margin: 0; padding: clamp(17px, 2.5vw, 24px); border: 1px solid var(--border); border-radius: 13px; background: var(--panel); }
+        .new-case-page legend { padding: 0 9px; color: var(--text); font-family: var(--heading); font-size: 15px; font-weight: 700; }
+        .new-case-page .section-intro { margin: 0 0 18px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .new-case-page .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        .new-case-page .field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+        .new-case-page .field.full { grid-column: 1 / -1; }
+        .new-case-page label { color: #d7d7dc; font-size: 12px; font-weight: 600; }
+        .new-case-page .required { color: #ff5964; }
+        .new-case-page input, .new-case-page select, .new-case-page textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 12px 13px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: #0d0d0f; font: inherit; font-size: 13px; outline: none; transition: border-color .2s, box-shadow .2s; }
+        .new-case-page input:focus, .new-case-page select:focus, .new-case-page textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(213,31,43,.12); }
+        .new-case-page select { color-scheme: dark; }
+        .new-case-page textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
+        .new-case-page .form-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 4px 0 10px; }
+        .new-case-page .form-note { color: var(--muted); font-size: 12px; }
+        .new-case-page .submit-button { display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 13px 20px; border: 1px solid var(--red); border-radius: 8px; color: #fff; background: var(--red); font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, transform .2s; }
+        .new-case-page .submit-button:hover { background: var(--red-hover); transform: translateY(-1px); }
+        @media (max-width: 700px) {
+            .new-case-page .form-grid { grid-template-columns: 1fr; gap: 16px; }
+            .new-case-page .field.full { grid-column: auto; }
+            .new-case-page .form-actions { align-items: stretch; }
+            .new-case-page .submit-button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <a class="brand" href="{{ url_for('investigation.index') }}">
+            <span class="brand-logo">F<span class="brand-accent">X</span></span>
+            <span class="brand-name">ForensiX<small>CASE INTELLIGENCE</small></span>
+        </a>
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="{{ url_for('investigation.index') }}"><span class="nav-icon">⌂</span><span>Dashboard</span></a>
+            <a class="nav-item" href="{{ url_for('investigation.index') }}"><span class="nav-icon">▤</span><span>Cases &amp; Evidence</span></a>
+            <a class="nav-item" href="{{ url_for('analytics.index') }}"><span class="nav-icon">▥</span><span>Reports &amp; Analytics</span></a>
+            <a class="nav-item active" href="{{ url_for('case_entry.new_case') }}"><span class="nav-icon">＋</span><span>Register New Case</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <span class="user-avatar">{{ (session.get('full_name') or session.get('username') or 'U')[0]|upper }}</span>
+                <span class="user-info"><strong>{{ session.get('full_name') or session.get('username') or 'User' }}</strong><small>{{ (session.get('role') or 'USER')|replace('_', ' ') }}</small></span>
+            </div>
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="logout-button" type="submit">↪ &nbsp; Sign out</button>
+            </form>
+        </div>
+    </aside>
+    <div class="main-content">
+        <header class="topbar">
+            <div class="breadcrumb"><span>Workspace</span><span class="breadcrumb-separator">/</span><strong>Register New Case</strong></div>
+            <div class="system-status"><span class="status-dot"></span> SYSTEM OPERATIONAL <span class="topbar-avatar">{{ (session.get('full_name') or session.get('username') or 'U')[0]|upper }}</span></div>
+        </header>
+        <main class="page-content new-case-page">
+            <div class="page-heading">
+                <div class="eyebrow">Case management / Intake</div>
+                <h1>Register New Case</h1>
+                <p class="subtitle">Create a case record and optionally add its incident location, associated person, and initial evidence. Optional sections can be left empty.</p>
+            </div>
+            {% if created_case_id %}
+            <div class="notice success" role="status">Case created successfully. Case ID: <strong>{{ created_case_id }}</strong></div>
+            {% endif %}
+            {% if error %}
+            <div class="notice error" role="alert">{{ error }}</div>
+            {% endif %}
+            <form class="case-form" method="POST" action="{{ url_for('case_entry.new_case') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <fieldset>
+                    <legend>01 / Case information</legend>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="case_number">Case number <span class="required">*</span></label>
+                            <input id="case_number" name="case_number" required maxlength="30" value="{{ form_data.get('case_number', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="case_title">Case title <span class="required">*</span></label>
+                            <input id="case_title" name="case_title" required maxlength="150" value="{{ form_data.get('case_title', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="crime_type">Crime type <span class="required">*</span></label>
+                            <input id="crime_type" name="crime_type" required maxlength="100" value="{{ form_data.get('crime_type', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="incident_date">Incident date <span class="required">*</span></label>
+                            <input id="incident_date" name="incident_date" type="date" required value="{{ form_data.get('incident_date', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="priority">Priority <span class="required">*</span></label>
+                            <select id="priority" name="priority" required>
+                                {% for value in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] %}
+                                <option value="{{ value }}" {% if form_data.get('priority', 'MEDIUM') == value %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="status">Status <span class="required">*</span></label>
+                            <select id="status" name="status" required>
+                                {% for value in ['OPEN', 'UNDER_INVESTIGATION', 'SOLVED', 'CLOSED'] %}
+                                <option value="{{ value }}" {% if form_data.get('status', 'OPEN') == value %}selected{% endif %}>{{ value.replace('_', ' ') }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field full">
+                            <label for="description">Case description</label>
+                            <textarea id="description" name="description">{{ form_data.get('description', '') }}</textarea>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>02 / Incident location</legend>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label for="address">Address or block <span class="required">*</span></label>
+                            <input id="address" name="address" required maxlength="255" value="{{ form_data.get('address', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="city">City <span class="required">*</span></label>
+                            <input id="city" name="city" required maxlength="100" value="{{ form_data.get('city', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="state">State</label>
+                            <input id="state" name="state" maxlength="100" value="{{ form_data.get('state', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="postal_code">Postal code</label>
+                            <input id="postal_code" name="postal_code" maxlength="20" value="{{ form_data.get('postal_code', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="latitude">Latitude</label>
+                            <input id="latitude" name="latitude" type="number" step="any" value="{{ form_data.get('latitude', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="longitude">Longitude</label>
+                            <input id="longitude" name="longitude" type="number" step="any" value="{{ form_data.get('longitude', '') }}">
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>03 / Person (optional)</legend>
+                    <p class="section-intro">Leave this section blank if no person is being recorded.</p>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="person_name">Full name</label>
+                            <input id="person_name" name="person_name" maxlength="100" value="{{ form_data.get('person_name', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="person_role">Case role</label>
+                            <select id="person_role" name="person_role">
+                                <option value="">Select a role</option>
+                                {% for value in ['SUSPECT', 'VICTIM', 'WITNESS', 'INVESTIGATOR'] %}
+                                <option value="{{ value }}" {% if form_data.get('person_role', '') == value %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field full">
+                            <label for="person_notes">Notes</label>
+                            <textarea id="person_notes" name="person_notes">{{ form_data.get('person_notes', '') }}</textarea>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>04 / Evidence (optional)</legend>
+                    <p class="section-intro">Leave this section blank if no evidence is being entered yet.</p>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="evidence_code">Evidence code</label>
+                            <input id="evidence_code" name="evidence_code" maxlength="30" value="{{ form_data.get('evidence_code', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="evidence_category">Category</label>
+                            <input id="evidence_category" name="evidence_category" maxlength="100" value="{{ form_data.get('evidence_category', '') }}">
+                        </div>
+                        <div class="field full">
+                            <label for="evidence_description">Description</label>
+                            <textarea id="evidence_description" name="evidence_description">{{ form_data.get('evidence_description', '') }}</textarea>
+                        </div>
+                        <div class="field">
+                            <label for="evidence_collection_datetime">Collection date and time</label>
+                            <input id="evidence_collection_datetime" name="evidence_collection_datetime" type="datetime-local" value="{{ form_data.get('evidence_collection_datetime', '') }}">
+                        </div>
+                        <div class="field">
+                            <label for="evidence_storage_location">Storage location</label>
+                            <input id="evidence_storage_location" name="evidence_storage_location" maxlength="255" value="{{ form_data.get('evidence_storage_location', '') }}">
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-actions">
+                    <span class="form-note"><span class="required">*</span> Required fields</span>
+                    <button class="submit-button" type="submit">＋ &nbsp; Create case</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForensiX | Edit Case</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .edit-case-page {
+            width: min(100% - 48px, 1000px);
+            margin: 0 auto;
+            padding: 30px 0 48px;
+        }
+        .edit-case-page .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            color: #ff6872;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .edit-case-page .back-link:hover { color: #ff9299; }
+        .edit-case-page .edit-panel {
+            background: var(--panel, #141416);
+            border: 1px solid var(--border, #29292d);
+            border-radius: 16px;
+            padding: clamp(20px, 4vw, 34px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
+        }
+        .edit-case-page .eyebrow {
+            color: #ff6872;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+        .edit-case-page h1 {
+            color: var(--text, #f4f4f5);
+            font-family: var(--heading, Arial, sans-serif);
+            font-size: clamp(25px, 4vw, 34px);
+            margin: 8px 0;
+        }
+        .edit-case-page .subtitle {
+            color: var(--muted, #96969f);
+            font-size: 13px;
+            margin: 0 0 26px;
+        }
+        .edit-case-page .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+        .edit-case-page .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+        .edit-case-page .full { grid-column: 1 / -1; }
+        .edit-case-page label {
+            color: #dedee4;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .edit-case-page input,
+        .edit-case-page select,
+        .edit-case-page textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 13px;
+            border: 1px solid #36363d;
+            border-radius: 9px;
+            background: #0f0f11;
+            color: #f4f4f5;
+            font: inherit;
+            outline: none;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        .edit-case-page input:focus,
+        .edit-case-page select:focus,
+        .edit-case-page textarea:focus {
+            border-color: #d51f2b;
+            box-shadow: 0 0 0 3px rgba(213, 31, 43, .15);
+        }
+        .edit-case-page textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+        .edit-case-page .error {
+            background: rgba(213, 31, 43, .12);
+            color: #ff9aa1;
+            border: 1px solid rgba(213, 31, 43, .35);
+            padding: 13px 15px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+        }
+        .edit-case-page .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .edit-case-page .save-button,
+        .edit-case-page .cancel-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 11px 17px;
+            border-radius: 9px;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .edit-case-page .save-button {
+            border: 1px solid #d51f2b;
+            color: #fff;
+            background: #d51f2b;
+        }
+        .edit-case-page .save-button:hover { background: #ed2936; }
+        .edit-case-page .cancel-button {
+            border: 1px solid #36363d;
+            color: #e5e5e9;
+            background: #1b1b1e;
+        }
+        .edit-case-page .cancel-button:hover { background: #252529; }
+        @media (max-width: 700px) {
+            .edit-case-page { width: min(100% - 28px, 1000px); padding-top: 20px; }
+            .edit-case-page .form-grid { grid-template-columns: 1fr; }
+            .edit-case-page .full { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">F<span class="brand-accent">X</span></div>
+            <div>
+                <div class="brand-name">ForensiX</div>
+                <div class="brand-subtitle">CASE INTELLIGENCE</div>
+            </div>
+        </div>
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('home') }}" class="nav-item"><span class="nav-icon">⌂</span><span>Home</span></a>
+            <a href="{{ url_for('investigation.index') }}" class="nav-item active"><span class="nav-icon">▤</span><span>Cases</span></a>
+            <a href="{{ url_for('analytics.index') }}" class="nav-item"><span class="nav-icon">▥</span><span>Reports &amp; Analytics</span></a>
+            <a href="{{ url_for('case_entry.new_case') }}" class="nav-item"><span class="nav-icon">＋</span><span>Register New Case</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="user-avatar">{{ session.get('full_name', 'U')[:1] }}</div>
+                <div class="user-info">
+                    <strong>{{ session.get('full_name', 'User') }}</strong>
+                    <span>{{ session.get('role', '')|replace('_', ' ') }}</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="logout-button">↪ &nbsp; Log out</button>
+            </form>
+        </div>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">Workspace <span>/</span> Cases <span>/</span> Edit Case</div>
+            <div class="system-status"><span></span> System operational</div>
+        </div>
+        <main class="edit-case-page">
+            <a class="back-link" href="{{ url_for('investigation.case_detail', case_id=case_record.case_id) }}">
+                &larr; Back to case details
+            </a>
+
+            <section class="edit-panel">
+                <div class="eyebrow">Case management · Record {{ case_record.case_id }}</div>
+                <h1>Edit Case</h1>
+                <p class="subtitle">Update the case information below. Changes will be recorded in the audit log.</p>
+
+                {% if error %}
+                <div class="error">{{ error }}</div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('investigation.edit_case', case_id=case_record.case_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="case_number">Case number *</label>
+                            <input id="case_number" name="case_number" maxlength="30" required
+                                   value="{{ case_record.case_number }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="case_title">Case title *</label>
+                            <input id="case_title" name="case_title" maxlength="150" required
+                                   value="{{ case_record.case_title }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="crime_type">Crime type *</label>
+                            <input id="crime_type" name="crime_type" maxlength="100" required
+                                   value="{{ case_record.crime_type }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="incident_date">Incident date *</label>
+                            <input id="incident_date" name="incident_date" type="date" required
+                                   value="{{ case_record.incident_date }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="priority">Priority</label>
+                            <select id="priority" name="priority">
+                                {% for value in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] %}
+                                <option value="{{ value }}" {% if case_record.priority == value %}selected{% endif %}>
+                                    {{ value }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                {% for value in ['OPEN', 'UNDER_INVESTIGATION', 'SOLVED', 'CLOSED'] %}
+                                <option value="{{ value }}" {% if case_record.status == value %}selected{% endif %}>
+                                    {{ value.replace('_', ' ') }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field full">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description">{{ case_record.description or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="save-button" type="submit">Save changes</button>
+                        <a class="cancel-button" href="{{ url_for('investigation.case_detail', case_id=case_record.case_id) }}">Cancel</a>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>

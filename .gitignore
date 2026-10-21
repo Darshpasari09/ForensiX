@@ -1,0 +1,17 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+instance/
+.pytest_cache/
+.mypy_cache/
+.coverage
+*.log
+.DS_Store
+Thumbs.db
+data/raw/chicago_crimes.csv
+
+data/raw/
